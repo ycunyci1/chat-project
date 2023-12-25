@@ -4,7 +4,7 @@
         <button class="login-button" @click="login">Войти</button>
     </div>
     <div v-if="userId" class="chat-app">
-        <aside class="sidebar">
+        <aside class="sidebar" v-show="!currentChat || isDesktop">
             <div class="search-container">
                 <input type="text" v-model="searchQuery" @input="searchUsers" placeholder="Поиск пользователя...">
             </div>
@@ -40,12 +40,16 @@
         <section class="chat-main" v-if="currentChat">
             <!-- Заголовок текущего чата -->
             <header class="chat-header">
-                <h2 class="chat-companion-name">{{ currentChat.companion.name }}</h2>
-                <div>{{ currentChat.companion.is_online ? 'В сети' : 'Не в сети' }}</div>
-                <div v-if="!currentChat.companion.is_online">Последняя активность:
-                    {{ currentChat.companion.last_seen_at }}
+                <svg @click="closeChat" class="back-arrow-icon" style="align-self: center" xmlns="http://www.w3.org/2000/svg" height="30" width="25" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/></svg>
+                <img class="header-avatar" :src="currentChat.companion.avatar" alt="avatar">
+                <div>
+                    <h2 class="chat-companion-name">{{ currentChat.companion.name }}</h2>
+                    <div>{{ currentChat.companion.is_online ? 'В сети' : 'Не в сети' }}</div>
+                    <div v-if="!currentChat.companion.is_online">Был(а) в сети:
+                        {{ currentChat.companion.last_seen_at }}
+                    </div>
+                    <div v-if="otherUserIsTyping">Собеседник печатает...</div>
                 </div>
-                <div v-if="otherUserIsTyping">Собеседник печатает...</div>
             </header>
             <div class="chat-messages" ref="chatMessages">
                 <div v-for="message in currentChat.messages" :key="message.id"
@@ -87,10 +91,14 @@ export default {
             isMenuVisible: false,
             searchQuery: '',
             searchResults: [],
+            isDesktop: false,
         };
     },
 
     created() {
+        this.handleResize();
+        window.addEventListener('resize', this.handleResize);
+
         if (localStorage.getItem('access_token')) {
             this.getUserInfo();
             this.fetchChats();
@@ -108,6 +116,21 @@ export default {
         }
     },
     methods: {
+        closeChat() {
+            this.openedChatSub.unsubscribe()
+            this.centrifuge.removeSubscription(this.openedChatSub)
+
+            this.userStatusSub.unsubscribe()
+            this.centrifuge.removeSubscription(this.userStatusSub)
+
+            this.listenForTypingSub.unsubscribe()
+            this.centrifuge.removeSubscription(this.listenForTypingSub)
+
+            this.currentChat = null
+        },
+        handleResize() {
+            this.isDesktop = window.innerWidth > 768; // Обновляем isDesktop в зависимости от размера экрана
+        },
         searchUsers() {
             if (this.searchQuery.length > 1) {
                 axios.get(`/api/search-users?search=${this.searchQuery}`, {
@@ -307,7 +330,10 @@ export default {
             });
             sub.subscribe()
         },
-    }
+    },
+    beforeDestroy() {
+        window.removeEventListener('resize', this.handleResize);
+    },
 }
 
 </script>
@@ -324,7 +350,7 @@ export default {
     max-width: 30%; /* Ширина боковой панели */
     min-width: 30%; /* Ширина боковой панели */
     background-color: #f7f7f7; /* Фон боковой панели */
-    overflow-y: auto; /* Добавляет прокрутку при переполнении */
+    overflow-y: scroll; /* Добавляет прокрутку при переполнении */
     border-right: 1px solid #e0e0e0; /* Разделяющая линия */
 }
 
@@ -379,6 +405,7 @@ export default {
 }
 
 .chat-header {
+    display: flex;
     padding: 20px;
     background-color: #eaeaea;
     border-bottom: 1px solid #e0e0e0;
@@ -391,7 +418,7 @@ export default {
 .chat-messages {
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 170px);
+    max-height: calc(100vh - 190px);
     max-width: 100%;
     min-width: 100%;
     overflow: scroll;
@@ -432,7 +459,7 @@ export default {
 .chat-input-container {
     position: absolute;
     bottom: 0;
-    width: 100%;
+    width: calc(100% - 40px);
     display: flex;
     padding: 20px;
     background-color: #fafafa;
@@ -451,7 +478,6 @@ export default {
 .send-button {
     padding: 10px 20px;
     background-color: #007bff;
-    width: 10%;
     color: white;
     border: none;
     border-radius: 20px;
@@ -568,6 +594,12 @@ export default {
     z-index: 100;
 }
 
+.back-arrow-icon {
+    cursor: pointer;
+    align-self: center;
+    margin-right: 15px;
+}
+
 .search-results ul {
     list-style: none;
     margin: 0;
@@ -586,12 +618,33 @@ export default {
     background-color: #f7f7f7;
 }
 
+.header-avatar {
+    height: 70px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover; /* Обрезает изображение, чтобы оно заполняло элемент */
+}
+
 .search-avatar {
     width: 50px; /* Размер аватара */
     height: 50px;
     border-radius: 50%;
     margin-right: 15px;
     object-fit: cover; /* Обрезает изображение, чтобы оно заполняло элемент */
+}
+
+@media (max-width: 768px) {
+    .chat-app {
+        width: 100vw; /* Полная высота экрана для мобильных устройств */
+    }
+    .sidebar {
+        width: 100vw;
+        max-width: none;
+    }
+    .chat-main {
+        width: 100vw;
+        max-width: 100vw;
+    }
 }
 </style>
 
