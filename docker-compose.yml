@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+        - "80:80"
+    volumes:
+        - ./_docker/nginx/conf.d:/etc/nginx/conf.d
+        - ./:/var/www/chat
+    container_name: chat_nginx
+    depends_on:
+        - app
+  app:
+    build:
+      context: .
+      dockerfile: _docker/app/Dockerfile
+    volumes:
+        - ./:/var/www/chat
+    container_name: chat_app
+    depends_on:
+        - db
+  php:
+      image: php:8.1-fpm
+      volumes:
+          - ./php:/usr/local/etc/php
+          - ./public:/var/www/chat
+  db:
+    image: mysql:8.0
+    restart: always
+    volumes:
+        - ./_docker/mysql/data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: chat
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    container_name: chat_db
