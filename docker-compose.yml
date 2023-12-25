@@ -20,11 +20,6 @@ services:
     container_name: chat_app
     depends_on:
         - db
-  php:
-      image: php:8.1-fpm
-      volumes:
-          - ./php:/usr/local/etc/php
-          - ./public:/var/www/chat
   db:
     image: mysql:8.0
     restart: always
