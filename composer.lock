@@ -184,43 +184,6 @@
             "time": "2023-07-01T06:40:30+00:00"
         },
         {
-            "name": "dd1/chat",
-            "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "../chat-dd1",
-                "reference": "8fc429cb4a1309a43b447b433ba1d8160537cbc7"
-            },
-            "require": {
-                "laravel/framework": "^10.0",
-                "laravel/passport": "^12.0@dev",
-                "pusher/pusher-php-server": "^7.2"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "\\Dd1\\Chat\\ChatServiceProvider",
-                        "\\Dd1\\Chat\\ChatBroadcastServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Dd1\\Chat\\": "src/"
-                }
-            },
-            "authors": [
-                {
-                    "name": "Pavel"
-                }
-            ],
-            "description": "Пакет для чата",
-            "transport-options": {
-                "relative": true
-            }
-        },
-        {
             "name": "defuse/php-encryption",
             "version": "v2.4.0",
             "source": {
