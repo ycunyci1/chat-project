@@ -185,16 +185,16 @@
         },
         {
             "name": "chequite/chat",
-            "version": "1.0.5",
+            "version": "1.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ycunyci1/chat-package.git",
-                "reference": "3bf7ac3bcd0ab62e060a29deb9eaa2f95dc16a83"
+                "reference": "5f2910c7ada947a3cf0f7f0c4f921a57acba6676"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ycunyci1/chat-package/zipball/3bf7ac3bcd0ab62e060a29deb9eaa2f95dc16a83",
-                "reference": "3bf7ac3bcd0ab62e060a29deb9eaa2f95dc16a83",
+                "url": "https://api.github.com/repos/ycunyci1/chat-package/zipball/5f2910c7ada947a3cf0f7f0c4f921a57acba6676",
+                "reference": "5f2910c7ada947a3cf0f7f0c4f921a57acba6676",
                 "shasum": ""
             },
             "require": {
@@ -228,9 +228,9 @@
             "description": "Пакет для чата на центрифуге",
             "support": {
                 "issues": "https://github.com/ycunyci1/chat-package/issues",
-                "source": "https://github.com/ycunyci1/chat-package/tree/1.0.5"
+                "source": "https://github.com/ycunyci1/chat-package/tree/1.0.7"
             },
-            "time": "2023-12-25T17:20:13+00:00"
+            "time": "2023-12-26T00:51:32+00:00"
         },
         {
             "name": "defuse/php-encryption",

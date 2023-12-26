@@ -17,15 +17,17 @@
                 </ul>
             </div>
             <ul class="chat-list">
-                <li v-for="chat in chats" :key="chat.id" @click="openChat(chat.id)" class="chat-item">
+                <li v-for="chat in chats" :key="chat.id" @click="openChat(chat.id)" class="chat-item" :class="{'unread-message': !chat.last_message.was_read && chat.last_message.sender_id != userId}">
                     <img v-if="chat.last_message" class="chat-item-avatar" :src="chat.avatar" alt="Avatar">
                     <div v-if="chat.last_message" class="chat-item-details">
                         <h5 class="chat-item-name">{{ chat.companion_name }}</h5>
                         <p class="chat-item-last-message">{{
-                                chat.last_message.sender_id.toString() === this.userId.toString() ? 'Вы: ' + chat.last_message.text : chat.last_message.sender_name + ': ' + chat.last_message.text
+                                chat.last_message.sender_id.toString() === this.userId.toString() ? 'Вы: ' + truncateString(chat.last_message.text, 40) : chat.last_message.sender_name + ': ' + truncateString(chat.last_message.text, 40)
                             }}</p>
                     </div>
                     <span v-if="chat.last_message" class="chat-item-timestamp">{{ chat.last_message.timestamp }}</span>
+                    <svg v-if="!chat.last_message.was_read" xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path fill="#181dbf" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>
+                    <svg v-if="chat.last_message.was_read" xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path fill="#18d82e" d="M342.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 178.7l-57.4-57.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l80 80c12.5 12.5 32.8 12.5 45.3 0l160-160zm96 128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 402.7 54.6 297.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l256-256z"/></svg>
                 </li>
             </ul>
             <div v-if="isMenuVisible" class="user-menu-btns">
@@ -40,7 +42,12 @@
         <section class="chat-main" v-if="currentChat">
             <!-- Заголовок текущего чата -->
             <header class="chat-header">
-                <svg @click="closeChat" class="back-arrow-icon" style="align-self: center" xmlns="http://www.w3.org/2000/svg" height="30" width="25" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/></svg>
+                <svg @click="closeChat" class="back-arrow-icon" style="align-self: center"
+                     xmlns="http://www.w3.org/2000/svg" height="30" width="25" viewBox="0 0 320 512">
+                    <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.-->
+                    <path
+                        d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/>
+                </svg>
                 <img class="header-avatar" :src="currentChat.companion.avatar" alt="avatar">
                 <div>
                     <h2 class="chat-companion-name">{{ currentChat.companion.name }}</h2>
@@ -53,10 +60,12 @@
             </header>
             <div class="chat-messages" ref="chatMessages">
                 <div v-for="message in currentChat.messages" :key="message.id"
-                     :class="{'message': true, 'my-message': message.user.id.toString() === this.userId.toString(), 'their-message': message.user.id.toString() !== this.userId.toString()}">
+                     :class="{'message': true, 'my-message': message.user.id == this.userId, 'their-message': message.user.id != this.userId}">
                     <img :src="message.user.avatar" class="message-avatar">
                     <div class="message-content">{{ message.text }}</div>
                     <div class="message-time">{{ message.timestamp }}</div>
+                    <svg v-if="!message.was_read" xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path fill="#181dbf" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>
+                    <svg v-if="message.was_read" xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path fill="#18d82e" d="M342.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 178.7l-57.4-57.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l80 80c12.5 12.5 32.8 12.5 45.3 0l160-160zm96 128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 402.7 54.6 297.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l256-256z"/></svg>
                 </div>
             </div>
             <footer class="chat-input-container">
@@ -98,8 +107,8 @@ export default {
     created() {
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
-
         if (localStorage.getItem('access_token')) {
+            this.updateCentrifugoToken()
             this.getUserInfo();
             this.fetchChats();
             this.centrifuge = new Centrifuge('ws://5.35.83.190:8000/connection/websocket');
@@ -116,6 +125,23 @@ export default {
         }
     },
     methods: {
+        truncateString(string, maxLength) {
+            if (string.length > maxLength) {
+                console.log(string)
+                return string.slice(0, maxLength) + '...';
+            }
+            return string;
+        },
+        updateCentrifugoToken() {
+            axios.get('/api/update-centrifugo-token', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('access_token')}`
+                }
+            })
+                .then((response) => {
+                    localStorage.setItem('centrifugo_token', response.data.centrifugo_token)
+                })
+        },
         closeChat() {
             this.openedChatSub.unsubscribe()
             this.centrifuge.removeSubscription(this.openedChatSub)
@@ -361,6 +387,7 @@ export default {
 }
 
 .chat-item {
+    overflow: hidden;
     display: flex;
     align-items: center;
     padding: 15px;
@@ -392,6 +419,7 @@ export default {
 }
 
 .chat-item-timestamp {
+    margin-right: 4px;
     font-size: 0.75rem;
     color: #999;
 }
@@ -633,16 +661,26 @@ export default {
     object-fit: cover; /* Обрезает изображение, чтобы оно заполняло элемент */
 }
 
+.unread-message {
+    background-color: #d0e0f0;
+}
+
 @media (max-width: 768px) {
     .chat-app {
         width: 100vw; /* Полная высота экрана для мобильных устройств */
     }
+
     .sidebar {
         width: 100vw;
         max-width: none;
     }
+
     .chat-main {
         width: 100vw;
+        max-width: 100vw;
+    }
+
+    .chat-item {
         max-width: 100vw;
     }
 }
