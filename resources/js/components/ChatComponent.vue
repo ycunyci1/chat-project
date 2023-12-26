@@ -648,6 +648,7 @@ export default {
 
 .header-avatar {
     height: 70px;
+    width: 70px;
     border-radius: 50%;
     margin-right: 15px;
     object-fit: cover; /* Обрезает изображение, чтобы оно заполняло элемент */
